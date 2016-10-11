@@ -25,14 +25,14 @@ int main(int argc, char** argv)
   int rank, size, namelen, version, subversion, *a, *b;
 
   MPI_Win win;
-//  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-//  MPI_Get_processor_name(processor_name, &namelen);
-//  MPI_Get_version(&version, &subversion);
+  MPI_Get_processor_name(processor_name, &namelen);
+  MPI_Get_version(&version, &subversion);
 //
-//  cout << " I'm rank " << rank << " of " << size << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
+  cout << " I'm rank " << rank << " of " << size << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
 
   size = 1;
   MPI_Alloc_mem(sizeof(int)*size, MPI_INFO_NULL, &a);

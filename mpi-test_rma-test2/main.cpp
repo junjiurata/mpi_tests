@@ -51,7 +51,8 @@ int main(int argc, char** argv){
         cout << " initial fin: " << *finish << " Rank " << rank << endl;
         do {
             j++;
-        } while((j<100));//&&
+                        cout << "[" << j << "]" << endl;
+        } while((j<52));//&&
         *finish = 1;
         cout << endl << "  " << rank << " finish! " << *finish << " j " << j<< endl;
 //        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, MPI_MODE_NOCHECK,  win);
@@ -63,14 +64,16 @@ int main(int argc, char** argv){
         cout << " initial fin: " << *finish << " Rank " << rank << endl;
         do {
             j++;
-            MPI_Win_lock(MPI_LOCK_EXCLUSIVE, procs-1, 0,  win);
+            MPI_Win_lock(MPI_LOCK_SHARED, procs-1, 0,  win);
+            cout << "(" << j << ")" << endl;
             MPI_Get(finish, 1, MPI_INT, procs-1, 0, 1, MPI_INT, win);  // procs-1のプロセスからfinishをGet．
+//            if(j % 10000 == 0){
+//                cout << j/10000 << " ";
+//            }
+            cout << "Get end??" << endl;
             MPI_Win_flush(procs-1, win);
             MPI_Win_unlock(procs-1, win);
-            if(j % 10000 == 0){
-                cout << j/10000 << " ";
-            }
-        } while((*finish != 1));//&&(j<100000000)
+        } while((*finish != 1)&&(j<1000000));//
         cout << " Terminate fin " << *finish << " Rank " << rank << " Itr: "<< j << endl;
     } 
 
@@ -79,7 +82,7 @@ int main(int argc, char** argv){
 //            " color: " << color << " Key: " << key << 
 //            " COMM: " << &new_comm << " Rank2: " << rank2 << endl;
     MPI_Barrier(MPI_COMM_WORLD);
-    cout << "RE Terminate fin " << *finish << " Rank " << rank << " Itr: "<< j << endl;
+//    cout << "RE Terminate fin " << *finish << " Rank " << rank << " Itr: "<< j << endl;
 //    cout << "All process finished! " << rank << endl;
 
     MPI_Win_free(&win);
