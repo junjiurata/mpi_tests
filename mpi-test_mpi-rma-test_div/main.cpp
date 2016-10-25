@@ -22,8 +22,10 @@ int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
     int rank, procs;
     int *fini = 0;
-    int *finr;
+//    int *finr;
     int SIZE;
+    int target = 1;
+    int j = 0;
 
     MPI_Win win;        // 宣言：window
 
@@ -35,35 +37,40 @@ int main(int argc, char** argv){
     
     // for transmitting between process (make "window")
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
-    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &finr);
+//    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &finr);
     MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
     MPI_Barrier(MPI_COMM_WORLD);    
 
-//    if(rank == (procs-1)){
-//        cout << endl << " initial fin: " << *finish << " Rank " << rank << endl;
-         for(int j = 0; j < 10000000; j++){
-             SIZE++;
+    cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
+
+    if(rank == 0){
+         for(; j < 100000; j++){
+//             j++;
          }
-        *fini = rank * 100;
-        cout << "  " << rank << " (LONG) finish " << *fini << " ! " << endl;
-        // MPI_Put(&finish, 1, MPI_INT, 1, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
-//    }
-    
-//    MPI_Barrier(MPI_COMM_WORLD);
-    if(rank != (procs-1)){
-       // int j = 0;
-//        cout << " initial fin: " << *finr << " Rank " << rank << endl;
-        MPI_Win_lock(MPI_LOCK_SHARED, procs-1, 0,  win);      
-//        MPI_Win_fence((MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE), win);   // MPI_Putを許すためのfence(同期)
-        MPI_Get(finr, 1, MPI_INT, procs-1, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
-        MPI_Win_unlock(procs-1, win);
-//        MPI_Win_fence(MPI_MODE_NOSUCCEED, win); 
+        *fini = 1;
+        cout << " Rank " << rank << " (LONG) finish " << *fini << " ! " << endl;
+        MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);  // memoryはrank=1
+         MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
+        MPI_Win_unlock(target, win);
+    } else if(rank == 2){
+//        int j = 0;
+//        cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
+        for(; j < 10000000; j++){
+//        j++;
+        MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);      
+        MPI_Get(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
+        MPI_Win_unlock(1, win);
+        if(*fini==1) break;
+            if(j % 1000 == 0){
+                cout << j << " (" << *fini << ")"<< endl;
+            }
+        }
     } 
-        cout  << " Terminate fin " << *finr <<  " Rank " << rank << endl;
+        cout  << " Terminate fin " << *fini <<  " Rank " << rank << " j " << j << endl;
     
     MPI_Win_free(&win);
     MPI_Free_mem(fini);
-    MPI_Free_mem(finr);
+//    MPI_Free_mem(finr);
     MPI_Finalize();
 }
 

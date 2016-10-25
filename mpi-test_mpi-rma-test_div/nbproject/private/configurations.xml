@@ -98,8 +98,9 @@
           <runcommandpicklistitem>/usr/bin/mpiexec -np 1 "${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>/usr/bin/mpiexec -np 2 "${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>/usr/bin/mpiexec -np 4 "${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>/usr/bin/mpiexec -np 3 "${OUTPUT_PATH}"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>/usr/bin/mpiexec -np 4 "${OUTPUT_PATH}"</runcommand>
+        <runcommand>/usr/bin/mpiexec -np 3 "${OUTPUT_PATH}"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
