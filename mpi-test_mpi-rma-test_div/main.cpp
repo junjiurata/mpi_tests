@@ -21,7 +21,7 @@ using namespace std;
 int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
     int rank, procs;
-    int *fini = 0;
+    int *fini;
 //    int *finr;
     int SIZE;
     int target = 1;
@@ -39,12 +39,13 @@ int main(int argc, char** argv){
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
 //    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &finr);
     MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
-    MPI_Barrier(MPI_COMM_WORLD);    
+    *fini = 0;
 
-    cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
+    MPI_Barrier(MPI_COMM_WORLD);    
+    cout << " Rank " << rank << " initial fin: " << *fini << " j " << j << endl;
 
     if(rank == 0){
-         for(; j < 100000; j++){
+         for(; j < 100000000; j++){
 //             j++;
          }
         *fini = 1;
@@ -52,22 +53,25 @@ int main(int argc, char** argv){
         MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);  // memoryはrank=1
          MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
         MPI_Win_unlock(target, win);
-    } else if(rank == 2){
+    } else if(rank != 0){
 //        int j = 0;
 //        cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
-        for(; j < 10000000; j++){
+        for(; j < 100000000000; j++){
 //        j++;
         MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);      
         MPI_Get(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
         MPI_Win_unlock(1, win);
         if(*fini==1) break;
             if(j % 1000 == 0){
-                cout << j << " (" << *fini << ")"<< endl;
+                cout << j << " (" << rank << ", " << *fini << ")"<< endl;
             }
         }
     } 
-        cout  << " Terminate fin " << *fini <<  " Rank " << rank << " j " << j << endl;
-    
+        cout <<  " Rank " << rank << " Terminate fin " << *fini  << " j " << j << endl;
+
+        MPI_Barrier(MPI_COMM_WORLD);    
+        cout <<  " # Rank " << rank << " Terminate fin " << *fini  << " j " << j << endl;
+        
     MPI_Win_free(&win);
     MPI_Free_mem(fini);
 //    MPI_Free_mem(finr);
