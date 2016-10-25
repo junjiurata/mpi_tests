@@ -14,9 +14,9 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=gcc
-CCC=g++
-CXX=g++
+CC=mpicc
+CCC=mpic++
+CXX=mpic++
 FC=gfortran
 AS=as
 

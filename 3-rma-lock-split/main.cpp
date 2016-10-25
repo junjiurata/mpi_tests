@@ -22,11 +22,9 @@ int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
     int rank, procs;
     int *fini;
-//    int *finr;
-    int SIZE;
     int target = 1;
     int j = 0;
-    int size, namelen, version, subversion, *a, *b;
+    int namelen, version, subversion;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
 
     MPI_Win win;        // 宣言：window
@@ -34,12 +32,12 @@ int main(int argc, char** argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
-//    MPI_Comm_split(MPI_COMM_WORLD, color, key, &new_comm);  // コミュニケータの分割宣言
-//    MPI_Comm_rank(new_comm, &rank2);    // 分割後のランクの設定
     MPI_Get_processor_name(processor_name, &namelen);
     MPI_Get_version(&version, &subversion);
-//
-  cout << " I'm rank " << rank << " of " << procs << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
+    cout << " I'm rank " << rank << " of " << procs << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
+
+//    MPI_Comm_split(MPI_COMM_WORLD, color, key, &new_comm);  // コミュニケータの分割宣言
+//    MPI_Comm_rank(new_comm, &rank2);    // 分割後のランクの設定
 
     // for transmitting between process (make "window")
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);

@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=mpi-test_mpi-rma-test_div
+PROJECTNAME=3-rma-lock-split
 
 # Active Configuration
 DEFAULTCONF=Debug

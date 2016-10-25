@@ -14,7 +14,7 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=mpicc
+CC=gcc
 CCC=mpic++
 CXX=mpic++
 FC=gfortran
@@ -23,7 +23,7 @@ AS=as
 # Macros
 CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
-CND_CONF=Debug
+CND_CONF=s137_of_Debug_MPI
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
