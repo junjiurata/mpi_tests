@@ -26,6 +26,8 @@ int main(int argc, char** argv){
     int SIZE;
     int target = 1;
     int j = 0;
+    int size, namelen, version, subversion, *a, *b;
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
 
     MPI_Win win;        // 宣言：window
 
@@ -34,7 +36,11 @@ int main(int argc, char** argv){
 
 //    MPI_Comm_split(MPI_COMM_WORLD, color, key, &new_comm);  // コミュニケータの分割宣言
 //    MPI_Comm_rank(new_comm, &rank2);    // 分割後のランクの設定
-    
+    MPI_Get_processor_name(processor_name, &namelen);
+    MPI_Get_version(&version, &subversion);
+//
+  cout << " I'm rank " << rank << " of " << size << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
+
     // for transmitting between process (make "window")
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
 //    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &finr);
@@ -53,7 +59,7 @@ int main(int argc, char** argv){
         MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);  // memoryはrank=1
          MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
         MPI_Win_unlock(target, win);
-    } else if(rank != 0){
+    } else if(rank == 2){
 //        int j = 0;
 //        cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
         for(; j < 100000000000; j++){
