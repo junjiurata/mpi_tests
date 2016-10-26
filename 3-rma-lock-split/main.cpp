@@ -20,30 +20,36 @@ using namespace std;
 //// Save-Allreduce ////
 int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
-    int rank, procs;
+    int rank, procs, rank2, procs2;
     int *fini;
     int target = 1;
     int j = 0;
     int namelen, version, subversion;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
-
+    MPI_Comm new_comm;
     MPI_Win win;        // 宣言：window
+
+    MPI_Get_processor_name(processor_name, &namelen);
+    MPI_Get_version(&version, &subversion);
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
-    MPI_Get_processor_name(processor_name, &namelen);
-    MPI_Get_version(&version, &subversion);
-    cout << " I'm rank " << rank << " of " << procs << " on " << processor_name << " running MPI " << version << "." << subversion << endl;
+    int key = rank; //子コミュニケータにおけるrankの割り当て
+    int color = (rank != target);
+    MPI_Comm_split(MPI_COMM_WORLD, color, key, &new_comm);  // コミュニケータの分割宣言
+    MPI_Comm_rank(new_comm, &rank2);    // 分割後のランクの設定
+    MPI_Comm_size(new_comm, &procs2);
 
-//    MPI_Comm_split(MPI_COMM_WORLD, color, key, &new_comm);  // コミュニケータの分割宣言
-//    MPI_Comm_rank(new_comm, &rank2);    // 分割後のランクの設定
+    cout << " I'm rank " << rank << " of " << procs << " & " << rank2 << " of " << procs2 <<
+            " on " << processor_name << " running MPI " << version << "." << subversion << endl;
 
     // for transmitting between process (make "window")
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
-//    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &finr);
     MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
     *fini = 0;
+    int sumtest = rank;
+    int sumresl = 0;
 
     MPI_Barrier(MPI_COMM_WORLD);    
     cout << " Rank " << rank << " initial fin: " << *fini << " j " << j << endl;
@@ -70,15 +76,17 @@ int main(int argc, char** argv){
                 cout << j << " (" << rank << ", " << *fini << ")"<< endl;
             }
         }
-    } 
-        cout <<  " Rank " << rank << " Terminate fin " << *fini  << " j " << j << endl;
+    }
+    if(rank != target){
+        MPI_Allreduce(&sumtest, &sumresl, 1,MPI_INT, MPI_SUM, new_comm);
+    }
 
         MPI_Barrier(MPI_COMM_WORLD);    
-        cout <<  " # Rank " << rank << " Terminate fin " << *fini  << " j " << j << endl;
+        cout <<  " # Rank " << rank << " Terminate fin " << *fini  << " j " << j << " allsum " << sumresl << endl;
         
     MPI_Win_free(&win);
     MPI_Free_mem(fini);
-//    MPI_Free_mem(finr);
+    MPI_Comm_free(&new_comm);
     MPI_Finalize();
 }
 
