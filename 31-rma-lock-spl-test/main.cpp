@@ -28,7 +28,7 @@ int main(int argc, char** argv){
     int rank, procs, rank2, procs2;
     int *fini;
     int target = 1;
-    int j = 0;
+    int iter = 0;
     int namelen, version, subversion;
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     MPI_Comm new_comm;
@@ -48,25 +48,27 @@ int main(int argc, char** argv){
 //    MPI_Comm_size(new_comm, &procs2);
     numRanks(procs2, rank2, new_comm);
 
-    cout << " I'm rank " << rank << " of " << procs << " & " << rank2 << " of " << procs2 <<
+    cout << " I'm rank " << rank << " of " << procs << " / " << rank2 << " of " << procs2 <<
             " on " << processor_name << " running MPI " << version << "." << subversion << endl;
 
     // for transmitting between process (make "window")
     MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
+//    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &iter);
     MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
+//    MPI_Win_create(iter, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win2);
     *fini = 0;
     int sumtest = rank;
     int sumresl = 0;
 
     MPI_Barrier(MPI_COMM_WORLD);
     
-    for(int i=0; i < 5; i++){
+    for(int i=0; ; i++){
         MPI_Barrier(MPI_COMM_WORLD);    
         *fini = 0;
-        j = 0;
-        cout << "[" << i << "] Rank " << rank << " initial fin: " << *fini << " j " << j << endl;
+//        j = 0;
+        cout << "[" << i << "] Rank " << rank << " initial fin: " << *fini << " j " << iter << endl;
         if(rank == 0){
-             for(; j < 100000000; j++){
+             for(int p=0; p < 100000000; p++){
              }
             *fini = 1;
 //            cout << " Rank " << rank << " (LONG) finish " << *fini << " ! " << endl;
@@ -74,7 +76,8 @@ int main(int argc, char** argv){
              MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
             MPI_Win_unlock(target, win);
         } else if(rank == 2){
-            for(; ; j++){   // 繰り返し回数の上限を指定することも可能
+            for(; ; iter++){   // 繰り返し回数の上限を指定することも可能
+                
                 MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);      
                 MPI_Get(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
                 MPI_Win_unlock(1, win);
@@ -88,11 +91,17 @@ int main(int argc, char** argv){
             MPI_Allreduce(&sumtest, &sumresl, 1,MPI_INT, MPI_SUM, new_comm);
         }
         MPI_Barrier(MPI_COMM_WORLD);    
-        cout << "[" << i << "] Rank " << rank << " Terminate fin " << *fini  << " j " << j << " allsum " << sumresl << endl;
+        MPI_Bcast(&iter, 1, MPI_INT, 2, MPI_COMM_WORLD);
+        cout << "[" << i << "] Rank " << rank << " Terminate fin " << *fini  << " j " << iter << " allsum " << sumresl << endl;
+        if(iter > 300000) break;
     }
+
+    cout << "# Rank " << rank << " Terminate fin " << *fini  << " j " << iter << " allsum " << sumresl << endl;
         
     MPI_Win_free(&win);
     MPI_Free_mem(fini);
+//    MPI_Win_free(&win2);
+//    MPI_Free_mem(iter);
     MPI_Comm_free(&new_comm);
     MPI_Finalize();
 }
