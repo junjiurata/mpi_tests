@@ -21,7 +21,8 @@ using namespace std;
 int main(int argc, char** argv){
     MPI_Init(&argc, &argv);
     int rank, procs, rank2, procs2;
-    int *fini;
+//    int *fini;
+    int fini;
     int target = 1;
     int j = 0;
     int namelen, version, subversion;
@@ -45,35 +46,42 @@ int main(int argc, char** argv){
             " on " << processor_name << " running MPI " << version << "." << subversion << endl;
 
     // for transmitting between process (make "window")
-    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
-    MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
-    *fini = 0;
+//    MPI_Alloc_mem(sizeof(int), MPI_INFO_NULL, &fini);
+//    MPI_Win_create(fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
+    MPI_Win_create(&fini, 1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win); // finishをwindowに置く; extentはsizeof(int)でもいい．
+//    *fini = 0;
+    fini = 0;
     int sumtest = rank;
     int sumresl = 0;
 
     MPI_Barrier(MPI_COMM_WORLD);    
-    cout << " Rank " << rank << " initial fin: " << *fini << " j " << j << endl;
+//    cout << " Rank " << rank << " initial fin: " << *fini << " j " << j << endl;
+    cout << " Rank " << rank << " initial fin: " << fini << " j " << j << endl;
 
     if(rank == 0){
          for(; j < 100000000; j++){
 //             j++;
          }
-        *fini = 1;
-        cout << " Rank " << rank << " (LONG) finish " << *fini << " ! " << endl;
+//        *fini = 1;
+        fini = 1;
+//        cout << " Rank " << rank << " (LONG) finish " << *fini << " ! " << endl;
+        cout << " Rank " << rank << " (LONG) finish " << fini << " ! " << endl;
         MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);  // memoryはrank=1
-         MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
+//         MPI_Put(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
+         MPI_Put(&fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);  // finish=1をwinにput.していたが，同じプロセスなので特に必要ない．
         MPI_Win_unlock(target, win);
     } else if(rank == 2){
-//        int j = 0;
-//        cout << " initial fin: " << *fini << " Rank " << rank << " j " << j << endl;
         for(; j < 100000000000; j++){
 //        j++;
         MPI_Win_lock(MPI_LOCK_SHARED, target, 0,  win);      
-        MPI_Get(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
+//        MPI_Get(fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
+        MPI_Get(&fini, 1, MPI_INT, target, 0, 1, MPI_INT, win);   // procs-1のプロセスからfinishをGet．
         MPI_Win_unlock(1, win);
-        if(*fini==1) break;
+//        if(*fini==1) break;
+        if(fini==1) break;
             if(j % 1000 == 0){
-                cout << j << " (" << rank << ", " << *fini << ")"<< endl;
+//                cout << j << " (" << rank << ", " << *fini << ")"<< endl;
+                cout << j << " (" << rank << ", " << fini << ")"<< endl;
             }
         }
     }
@@ -82,10 +90,11 @@ int main(int argc, char** argv){
     }
 
         MPI_Barrier(MPI_COMM_WORLD);    
-        cout <<  " # Rank " << rank << " Terminate fin " << *fini  << " j " << j << " allsum " << sumresl << endl;
+//        cout <<  " # Rank " << rank << " Terminate fin " << *fini  << " j " << j << " allsum " << sumresl << endl;
+        cout <<  " # Rank " << rank << " Terminate fin " << fini  << " j " << j << " allsum " << sumresl << endl;
         
     MPI_Win_free(&win);
-    MPI_Free_mem(fini);
+//    MPI_Free_mem(fini);
     MPI_Comm_free(&new_comm);
     MPI_Finalize();
 }

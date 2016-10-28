@@ -88,11 +88,39 @@ int main(int argc, char** argv){
             }
         }
         if(rank != target){
+//        new_comm = MPI_COMM_WORLD;    // こういう指定方法も可能
             MPI_Allreduce(&sumtest, &sumresl, 1,MPI_INT, MPI_SUM, new_comm);
         }
+        
+        // 1対1通信
+        MPI_Request ireq;   //とりあえず必要
+        MPI_Status istat;
+        int temp = 0;
+        if(rank == target){
+            temp = 3;
+        }
+        if(temp > 2){
+            MPI_Isend(&temp, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &ireq);
+            MPI_Isend(&temp, 1, MPI_INT, 2, 0, MPI_COMM_WORLD, &ireq);
+        } else {
+            MPI_Irecv(&temp, 1, MPI_INT, target, 0, MPI_COMM_WORLD, &ireq);
+        }
+        MPI_Wait(&ireq, &istat);
+        
+        // Bcast
+        int signal = 0;
+        if(rank == target){
+            signal = 2;
+        }
+//        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(&signal, 1, MPI_INT, target, MPI_COMM_WORLD);
+
         MPI_Barrier(MPI_COMM_WORLD);    
         MPI_Bcast(&iter, 1, MPI_INT, 2, MPI_COMM_WORLD);
-        cout << "[" << i << "] Rank " << rank << " Terminate fin " << *fini  << " j " << iter << " allsum " << sumresl << endl;
+        
+        
+        cout << "[" << i << "] Rank " << rank << " Terminate fin " << *fini  << " j " << iter <<
+                " allsum " << sumresl << " temp " << temp << " signal " << signal << endl;
         if(iter > 300000) break;
     }
 

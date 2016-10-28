@@ -3,17 +3,22 @@
 
 # User-specific files
 *.suo
+*.xml
 *.user
 *.sln.docstates
 *.dat
+*.o
 *.xml
 *.mk
 *.bash
+*.inc
 
 # Build results
 
 [Dd]ebug/
 [Rr]elease/
+private/
+dist/
 x64/
 build/
 [Bb]in/
